@@ -2,7 +2,28 @@
 
 🤖 **AI-optimized error formatter for PHPStan** - Reduce output by up to 80% for AI context windows.
 
-Perfect for Claude, ChatGPT, GitHub Copilot, and other AI coding assistants.
+Perfect for Claude, ChatGPT, GitHub Copilot, Cursor, and other AI coding assistants.
+
+## 🚀 Quick Start
+
+**Option 1: MCP Server (Recommended for AI Assistants)**
+
+Enable your AI assistant to run PHPStan directly:
+
+```bash
+npm install -g @webkult/phpstan-ai-mcp-server
+```
+
+Then configure your AI tool (Claude, Cursor, etc.) - see [MCP Setup Guide](mcp-server/SETUP_GUIDE.md)
+
+**Option 2: PHPStan Extension (Command Line)**
+
+Install in your PHP project:
+
+```bash
+composer require --dev webkult/phpstan-ai-formatter
+phpstan analyse --error-format=ai
+```
 
 ## Why?
 
@@ -31,7 +52,7 @@ src/UserService.php:45 | getUser() → User|null (expected User)
 ## Installation
 
 ```bash
-composer require --dev hackbard/phpstan-ai-formatter
+composer require --dev webkult/phpstan-ai-formatter
 ```
 
 The extension is automatically registered via [phpstan/extension-installer](https://github.com/phpstan/extension-installer).
@@ -93,6 +114,28 @@ phpstan analyse --error-format=ai-json
     "warnings": []
 }
 ```
+
+## MCP Server Integration
+
+**Model Context Protocol (MCP)** enables AI assistants to run PHPStan directly without manual commands.
+
+### Supported AI Tools
+
+- ✅ **Claude Desktop** - Official Anthropic desktop app
+- ✅ **Claude Code** - Official CLI tool
+- ✅ **Cursor** - AI-first code editor
+- ✅ **VSCode with Cline** - AI coding assistant extension
+- ✅ **Windsurf** - Codeium's AI IDE
+- ✅ **Continue.dev** - Open-source AI assistant
+
+### How It Works
+
+1. Install MCP server: `npm install -g @webkult/phpstan-ai-mcp-server`
+2. Configure your AI tool (one-time setup)
+3. Ask your AI: "Analyze my PHP code for errors"
+4. AI runs PHPStan automatically and suggests fixes
+
+**Complete setup guide**: [MCP Server Setup](mcp-server/SETUP_GUIDE.md)
 
 ## Use Cases
 
@@ -163,7 +206,7 @@ The formatter works out of the box with zero configuration. However, you can cus
 ```neon
 # phpstan.neon
 includes:
-    - vendor/hackbard/phpstan-ai-formatter/extension.neon
+    - vendor/webkult/phpstan-ai-formatter/extension.neon
 
 parameters:
     level: max
@@ -211,7 +254,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ### Development Setup
 
 ```bash
-git clone https://github.com/hackbard/phpstan-ai-formatter.git
+git clone https://github.com/webkult/phpstan-ai-formatter.git
 cd phpstan-ai-formatter
 composer install
 ```

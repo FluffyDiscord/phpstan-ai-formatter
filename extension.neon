@@ -1,6 +1,6 @@
 services:
     errorFormatter.ai:
-        class: Hackbard\PhpStanAiFormatter\AiErrorFormatter
+        class: Webkult\PhpStanAiFormatter\AiErrorFormatter
     
     errorFormatter.ai-json:
-        class: Hackbard\PhpStanAiFormatter\AiJsonErrorFormatter
+        class: Webkult\PhpStanAiFormatter\AiJsonErrorFormatter

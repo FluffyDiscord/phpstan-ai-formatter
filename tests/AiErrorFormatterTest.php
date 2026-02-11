@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Hackbard\PhpStanAiFormatter\Tests;
+namespace Webkult\PhpStanAiFormatter\Tests;
 
-use Hackbard\PhpStanAiFormatter\AiErrorFormatter;
+use Webkult\PhpStanAiFormatter\AiErrorFormatter;
 use PHPStan\Command\AnalysisResult;
 use PHPStan\Command\Output;
 use PHPStan\File\RelativePathHelper;

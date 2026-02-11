@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hackbard\PhpStanAiFormatter;
+namespace Webkult\PhpStanAiFormatter;
 
 use PHPStan\Command\AnalysisResult;
 use PHPStan\Command\ErrorFormatter\ErrorFormatter;

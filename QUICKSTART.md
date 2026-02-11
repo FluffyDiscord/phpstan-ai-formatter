@@ -5,7 +5,7 @@ Get started with PHPStan AI Formatter in 60 seconds.
 ## Installation
 
 ```bash
-composer require --dev hackbard/phpstan-ai-formatter
+composer require --dev webkult/phpstan-ai-formatter
 ```
 
 That's it! The extension is automatically registered.
@@ -93,8 +93,8 @@ vendor/bin/phpstan analyse --error-format=ai $(git diff --cached --name-only | g
 ## Need Help?
 
 - 📖 [Full Documentation](README.md)
-- 🐛 [Report Issues](https://github.com/hackbard/phpstan-ai-formatter/issues)
-- 💬 [Discussions](https://github.com/hackbard/phpstan-ai-formatter/discussions)
+- 🐛 [Report Issues](https://github.com/webkult/phpstan-ai-formatter/issues)
+- 💬 [Discussions](https://github.com/webkult/phpstan-ai-formatter/discussions)
 
 ## Next Steps
 

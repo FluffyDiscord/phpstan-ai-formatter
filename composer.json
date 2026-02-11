@@ -1,5 +1,5 @@
 {
-    "name": "hackbard/phpstan-ai-formatter",
+    "name": "webkult/phpstan-ai-formatter",
     "description": "Compact PHPStan error formatter designed for AI coding assistants. Transforms verbose PHPStan output into token-efficient format. Ideal for Claude, ChatGPT, Copilot and similar tools. Saves context window space while preserving all essential error information.",
     "type": "phpstan-extension",
     "license": "MIT",
@@ -15,8 +15,8 @@
     ],
     "authors": [
         {
-            "name": "Hackbard",
-            "homepage": "https://github.com/hackbard"
+            "name": "Benjamin Klein - webkult.de",
+            "homepage": "https://webkult.de"
         }
     ],
     "require": {
@@ -29,12 +29,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Hackbard\\PhpStanAiFormatter\\": "src/"
+            "Webkult\\PhpStanAiFormatter\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Hackbard\\PhpStanAiFormatter\\Tests\\": "tests/"
+            "Webkult\\PhpStanAiFormatter\\Tests\\": "tests/"
         }
     },
     "config": {
