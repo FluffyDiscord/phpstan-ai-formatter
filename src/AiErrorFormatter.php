@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Webkult\PhpStanAiFormatter;
 
+use PHPStan\Analyser\Error;
 use PHPStan\Command\AnalysisResult;
 use PHPStan\Command\ErrorFormatter\ErrorFormatter;
 use PHPStan\Command\Output;
@@ -15,11 +16,8 @@ use PHPStan\File\RelativePathHelper;
  */
 class AiErrorFormatter implements ErrorFormatter
 {
-    private RelativePathHelper $relativePathHelper;
-
-    public function __construct(RelativePathHelper $relativePathHelper)
+    public function __construct(private readonly RelativePathHelper $relativePathHelper)
     {
-        $this->relativePathHelper = $relativePathHelper;
     }
 
     public function formatErrors(AnalysisResult $analysisResult, Output $output): int
@@ -35,7 +33,7 @@ class AiErrorFormatter implements ErrorFormatter
 
         if (!$analysisResult->hasErrors() && !$analysisResult->hasWarnings()) {
             $style->success('No errors found!');
-            
+
             if ($analysisResult->isDefaultLevelUsed()) {
                 $style->note('Increase analysis level for deeper inspection (--level=max)');
             }
@@ -46,46 +44,48 @@ class AiErrorFormatter implements ErrorFormatter
         // Header with summary
         $errorCount = count($analysisResult->getFileSpecificErrors());
         $warningCount = count($analysisResult->getWarnings());
-        
+
         $style->title(sprintf(
             'PHPStan Analysis (config: %s)',
             $projectConfigFile
         ));
-        
-        $style->text(sprintf(
+
+        $output->writeLineFormatted(sprintf(
             'Found: %d error%s, %d warning%s',
             $errorCount,
             $errorCount === 1 ? '' : 's',
             $warningCount,
             $warningCount === 1 ? '' : 's'
         ));
-        
+
         $style->newLine();
 
         // Compact error output
         $style->section('Errors');
-        
+
         $errors = $analysisResult->getFileSpecificErrors();
         $groupedErrors = $this->groupErrorsByFile($errors);
 
         foreach ($groupedErrors as $file => $fileErrors) {
             $relativePath = $this->relativePathHelper->getRelativePath($file);
-            
-            foreach ($fileErrors as $error) {
-                // Format: file:line | short message
-                $line = $error->getLine() !== null ? $error->getLine() : '?';
+            $count = count($fileErrors);
+
+            foreach ($fileErrors as $index => $error) {
+                $line = $error->getLine() ?? 0;
                 $message = $this->shortenMessage($error->getMessage());
-                
-                $style->text(sprintf(
-                    '<fg=red>%s:%s</> | %s',
-                    $relativePath,
-                    $line,
-                    $message
-                ));
-                
-                // Add tip if available (indented)
+
+                if ($index === 0) {
+                    $prefix = sprintf('<fg=red>%s:%s</>', $relativePath, $line);
+                } elseif ($index === $count - 1) {
+                    $prefix = sprintf('<fg=red>╚:%s</>', $line);
+                } else {
+                    $prefix = sprintf('<fg=red>╠:%s</>', $line);
+                }
+
+                $output->writeLineFormatted(sprintf('%s | %s', $prefix, $message));
+
                 if ($error->getTip() !== null) {
-                    $style->text(sprintf('  → %s', $this->shortenMessage($error->getTip())));
+                    $output->writeLineFormatted(sprintf('  → %s', $this->shortenMessage($error->getTip())));
                 }
             }
         }
@@ -94,43 +94,38 @@ class AiErrorFormatter implements ErrorFormatter
         if ($warningCount > 0) {
             $style->newLine();
             $style->section('Warnings');
-            
+
             foreach ($analysisResult->getWarnings() as $warning) {
-                $style->text(sprintf('<fg=yellow>⚠</> %s', $warning));
+                $output->writeLineFormatted(sprintf('<fg=yellow>⚠</> %s', $warning));
             }
         }
 
         // Internal errors (if any)
-        if (count($analysisResult->getInternalErrors()) > 0) {
+        $internalErrors = $analysisResult->getInternalErrorObjects();
+        if (count($internalErrors) > 0) {
             $style->newLine();
             $style->section('Internal Errors');
-            
-            foreach ($analysisResult->getInternalErrors() as $internalError) {
-                $style->text(sprintf(
-                    '<fg=red>%s</> | %s',
-                    $internalError->getFile() !== null 
-                        ? $this->relativePathHelper->getRelativePath($internalError->getFile())
-                        : 'unknown',
-                    $internalError->getMessage()
-                ));
+
+            foreach ($internalErrors as $internalError) {
+                $output->writeLineFormatted(sprintf('<fg=red>internal</> | %s', $internalError->getMessage()));
             }
         }
 
         $style->newLine();
-        
+
         return $analysisResult->hasErrors() ? 1 : 0;
     }
 
     /**
      * Group errors by file for better organization
-     * 
-     * @param array<\PHPStan\Analyser\Error> $errors
-     * @return array<string, array<\PHPStan\Analyser\Error>>
+     *
+     * @param array<Error> $errors
+     * @return array<string, array<Error>>
      */
     private function groupErrorsByFile(array $errors): array
     {
         $grouped = [];
-        
+
         foreach ($errors as $error) {
             $file = $error->getFilePath();
             if (!isset($grouped[$file])) {
@@ -141,10 +136,10 @@ class AiErrorFormatter implements ErrorFormatter
 
         // Sort by file path
         ksort($grouped);
-        
+
         // Sort errors within each file by line number
         foreach ($grouped as &$fileErrors) {
-            usort($fileErrors, function ($a, $b) {
+            usort($fileErrors, static function ($a, $b): int {
                 return ($a->getLine() ?? 0) <=> ($b->getLine() ?? 0);
             });
         }
@@ -168,13 +163,13 @@ class AiErrorFormatter implements ErrorFormatter
         ];
 
         foreach ($patterns as $pattern => $replacement) {
-            $message = preg_replace($pattern, $replacement, $message);
+            $message = (string) preg_replace($pattern, $replacement, $message);
         }
 
         // Shorten long type unions (keep first 3 types + ...)
-        $message = preg_replace_callback(
+        $message = (string) preg_replace_callback(
             '/(\w+\|){4,}/',
-            function ($matches) {
+            static function ($matches): string {
                 $types = explode('|', rtrim($matches[0], '|'));
                 return implode('|', array_slice($types, 0, 3)) . '|...';
             },

@@ -15,23 +15,20 @@ use PHPStan\File\RelativePathHelper;
  */
 class AiJsonErrorFormatter implements ErrorFormatter
 {
-    private RelativePathHelper $relativePathHelper;
-
-    public function __construct(RelativePathHelper $relativePathHelper)
+    public function __construct(private readonly RelativePathHelper $relativePathHelper)
     {
-        $this->relativePathHelper = $relativePathHelper;
     }
 
     public function formatErrors(AnalysisResult $analysisResult, Output $output): int
     {
-        $style = $output->getStyle();
+        $internalErrors = $analysisResult->getInternalErrorObjects();
 
         $result = [
             'totals' => [
                 'errors' => count($analysisResult->getFileSpecificErrors()),
                 'file_errors' => count($analysisResult->getFileSpecificErrors()),
                 'warnings' => count($analysisResult->getWarnings()),
-                'internal_errors' => count($analysisResult->getInternalErrors()),
+                'internal_errors' => count($internalErrors),
             ],
             'files' => [],
             'warnings' => [],
@@ -40,13 +37,13 @@ class AiJsonErrorFormatter implements ErrorFormatter
         // Group errors by file
         $errors = $analysisResult->getFileSpecificErrors();
         $groupedErrors = [];
-        
+
         foreach ($errors as $error) {
             $file = $this->relativePathHelper->getRelativePath($error->getFilePath());
             if (!isset($groupedErrors[$file])) {
                 $groupedErrors[$file] = [];
             }
-            
+
             $groupedErrors[$file][] = [
                 'line' => $error->getLine(),
                 'message' => $this->shortenMessage($error->getMessage()),
@@ -57,20 +54,21 @@ class AiJsonErrorFormatter implements ErrorFormatter
 
         // Sort by file path
         ksort($groupedErrors);
-        
+
         foreach ($groupedErrors as $file => $fileErrors) {
             // Sort by line number
-            usort($fileErrors, function ($a, $b) {
+            usort($fileErrors, static function ($a, $b): int {
                 return ($a['line'] ?? 0) <=> ($b['line'] ?? 0);
             });
-            
+
             // Remove null tips to save tokens
-            foreach ($fileErrors as &$error) {
-                if ($error['tip'] === null) {
-                    unset($error['tip']);
+            foreach ($fileErrors as &$fileError) {
+                if ($fileError['tip'] === null) {
+                    unset($fileError['tip']);
                 }
             }
-            
+            unset($fileError);
+
             $result['files'][$file] = $fileErrors;
         }
 
@@ -80,21 +78,16 @@ class AiJsonErrorFormatter implements ErrorFormatter
         }
 
         // Internal errors
-        if (count($analysisResult->getInternalErrors()) > 0) {
+        if (count($internalErrors) > 0) {
             $result['internal_errors'] = [];
-            foreach ($analysisResult->getInternalErrors() as $internalError) {
-                $result['internal_errors'][] = [
-                    'file' => $internalError->getFile() !== null 
-                        ? $this->relativePathHelper->getRelativePath($internalError->getFile())
-                        : null,
-                    'message' => $internalError->getMessage(),
-                ];
+            foreach ($internalErrors as $internalError) {
+                $result['internal_errors'][] = ['message' => $internalError->getMessage()];
             }
         }
 
         // Output compact JSON
-        $json = json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        $style->writeln($json);
+        $json = (string)json_encode($result, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $output->writeLineFormatted($json);
 
         return $analysisResult->hasErrors() ? 1 : 0;
     }
@@ -120,9 +113,9 @@ class AiJsonErrorFormatter implements ErrorFormatter
         $shortened = str_replace(array_keys($replacements), array_values($replacements), $message);
 
         // Shorten long type unions
-        $shortened = preg_replace_callback(
+        $shortened = (string) preg_replace_callback(
             '/(\w+\|){4,}/',
-            function ($matches) {
+            static function ($matches): string {
                 $types = explode('|', rtrim($matches[0], '|'));
                 return implode('|', array_slice($types, 0, 3)) . '|…';
             },
@@ -130,7 +123,7 @@ class AiJsonErrorFormatter implements ErrorFormatter
         );
 
         // Remove duplicate spaces
-        $shortened = preg_replace('/\s+/', ' ', $shortened);
+        $shortened = (string) preg_replace('/\s+/', ' ', $shortened);
 
         return trim($shortened);
     }

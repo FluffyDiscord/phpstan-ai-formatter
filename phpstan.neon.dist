@@ -5,7 +5,3 @@ parameters:
     level: max
     paths:
         - src
-    
-    # Strict rules for quality
-    checkMissingIterableValueType: true
-    checkGenericClassInNonGenericObjectType: true

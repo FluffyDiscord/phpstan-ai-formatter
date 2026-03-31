@@ -11,12 +11,6 @@ composer.lock
 .phpstan.cache/
 phpstan-baseline.neon
 
-# MCP Server
-/mcp-server/node_modules/
-/mcp-server/dist/
-/mcp-server/*.log
-/mcp-server/*.tsbuildinfo
-
 # IDE
 .idea/
 .vscode/
@@ -31,3 +25,4 @@ Thumbs.db
 # Test output
 /build/
 /coverage/
+.dual-graph/

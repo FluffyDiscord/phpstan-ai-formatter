@@ -2,5 +2,5 @@ services:
     errorFormatter.ai:
         class: Webkult\PhpStanAiFormatter\AiErrorFormatter
     
-    errorFormatter.ai-json:
+    errorFormatter.aiJson:
         class: Webkult\PhpStanAiFormatter\AiJsonErrorFormatter
