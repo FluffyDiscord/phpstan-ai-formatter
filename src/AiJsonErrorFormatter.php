@@ -23,12 +23,15 @@ class AiJsonErrorFormatter implements ErrorFormatter
     {
         $internalErrors = $analysisResult->getInternalErrorObjects();
 
+        $notFileSpecificErrors = $analysisResult->getNotFileSpecificErrors();
+
         $result = [
             'totals' => [
                 'errors' => count($analysisResult->getFileSpecificErrors()),
                 'file_errors' => count($analysisResult->getFileSpecificErrors()),
                 'warnings' => count($analysisResult->getWarnings()),
                 'internal_errors' => count($internalErrors),
+                'severe_errors' => count($notFileSpecificErrors),
             ],
             'files' => [],
             'warnings' => [],
@@ -66,6 +69,11 @@ class AiJsonErrorFormatter implements ErrorFormatter
         // Warnings
         foreach ($analysisResult->getWarnings() as $warning) {
             $result['warnings'][] = $warning;
+        }
+
+        // Severe (not-file-specific) errors
+        if (count($notFileSpecificErrors) > 0) {
+            $result['severe_errors'] = $notFileSpecificErrors;
         }
 
         // Internal errors

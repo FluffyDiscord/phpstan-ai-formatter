@@ -44,19 +44,24 @@ class AiErrorFormatter implements ErrorFormatter
         // Header with summary
         $errorCount = count($analysisResult->getFileSpecificErrors());
         $warningCount = count($analysisResult->getWarnings());
+        $severeCount = count($analysisResult->getNotFileSpecificErrors());
 
         $style->title(sprintf(
             'PHPStan Analysis (config: %s)',
             $projectConfigFile
         ));
 
-        $output->writeLineFormatted(sprintf(
+        $summary = sprintf(
             'Found: %d error%s, %d warning%s',
             $errorCount,
             $errorCount === 1 ? '' : 's',
             $warningCount,
             $warningCount === 1 ? '' : 's'
-        ));
+        );
+        if ($severeCount > 0) {
+            $summary .= sprintf(', %d severe error%s', $severeCount, $severeCount === 1 ? '' : 's');
+        }
+        $output->writeLineFormatted($summary);
 
         $style->newLine();
 
@@ -93,6 +98,17 @@ class AiErrorFormatter implements ErrorFormatter
 
             foreach ($analysisResult->getWarnings() as $warning) {
                 $output->writeLineFormatted(sprintf('<fg=yellow>⚠</> %s', $warning));
+            }
+        }
+
+        // Not-file-specific errors (memory limit, process crashes, etc.)
+        $notFileSpecificErrors = $analysisResult->getNotFileSpecificErrors();
+        if (count($notFileSpecificErrors) > 0) {
+            $style->newLine();
+            $style->section('Severe Errors');
+
+            foreach ($notFileSpecificErrors as $error) {
+                $output->writeLineFormatted(sprintf('<fg=red>severe</> | %s', $error));
             }
         }
 
