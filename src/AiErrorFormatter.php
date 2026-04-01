@@ -172,6 +172,7 @@ class AiErrorFormatter implements ErrorFormatter
             '/^Call to an undefined method .+?::(\w+)\(\)\.$/' => 'Undefined method: \1()',
             '/^Access to an undefined property .+?::\$(\w+)\.$/' => 'Undefined property: $\1',
             '/^Parameter #\d+ \$\w+ of function (\w+) expects (.+?), (.+?) given\.$/' => '\1() expects \2, got \3',
+            '/^Call to function method_exists\(\) with .+ and \'(\w+)\' will always evaluate to (true|false)\.$/' => 'method_exists(\'$1\') always $2',
         ];
 
         foreach ($patterns as $pattern => $replacement) {

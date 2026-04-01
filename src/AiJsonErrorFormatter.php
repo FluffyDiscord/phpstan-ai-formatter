@@ -111,6 +111,13 @@ class AiJsonErrorFormatter implements ErrorFormatter
 
         $shortened = str_replace(array_keys($replacements), array_values($replacements), $message);
 
+        // Regex-based shortenings
+        $shortened = (string) preg_replace(
+            '/^Call to function method_exists\(\) with .+ and \'(\w+)\' will always evaluate to (true|false)\.$/',
+            "method_exists('$1') always $2",
+            $shortened
+        );
+
         // Shorten long type unions
         $shortened = (string) preg_replace_callback(
             '/(\w+\|){4,}/',
