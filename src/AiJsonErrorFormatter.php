@@ -47,7 +47,6 @@ class AiJsonErrorFormatter implements ErrorFormatter
             $groupedErrors[$file][] = [
                 'line' => $error->getLine(),
                 'message' => $this->shortenMessage($error->getMessage()),
-                'tip' => $error->getTip() !== null ? $this->shortenMessage($error->getTip()) : null,
                 'ignorable' => $error->canBeIgnored(),
             ];
         }
@@ -60,14 +59,6 @@ class AiJsonErrorFormatter implements ErrorFormatter
             usort($fileErrors, static function ($a, $b): int {
                 return ($a['line'] ?? 0) <=> ($b['line'] ?? 0);
             });
-
-            // Remove null tips to save tokens
-            foreach ($fileErrors as &$fileError) {
-                if ($fileError['tip'] === null) {
-                    unset($fileError['tip']);
-                }
-            }
-            unset($fileError);
 
             $result['files'][$file] = $fileErrors;
         }

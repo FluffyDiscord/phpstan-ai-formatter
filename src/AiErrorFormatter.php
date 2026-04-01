@@ -83,10 +83,6 @@ class AiErrorFormatter implements ErrorFormatter
                 }
 
                 $output->writeLineFormatted(sprintf('%s | %s', $prefix, $message));
-
-                if ($error->getTip() !== null) {
-                    $output->writeLineFormatted(sprintf('  → %s', $this->shortenMessage($error->getTip())));
-                }
             }
         }
 
